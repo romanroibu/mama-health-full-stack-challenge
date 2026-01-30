@@ -88,7 +88,7 @@ don't just rely on the AI.
 
 ## Deliverables 📦
 
-Please submit a link to your forked and completed GitHub repository. **Keep the repository private** and send an invite to **johannes.unruh@mamahealth.com** and **mattia.munari@mamahealth.io**.
+Please submit a link to your forked and completed GitHub repository. **Keep the repository private** and send an invite to **johannes.unruh@mamahealth.io** (tj-mm) and **lorenzo.famiglini@mamahealth.io** (lollomamahealth) a short notification email to **mattia.munari@mamahealth.io**.
 
 The repository should contain:
 
