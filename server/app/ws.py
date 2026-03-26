@@ -74,6 +74,7 @@ async def chat_send_message(ws: WebSocket, message: Message):
         {
             "type": "message",
             "id": str(message.id),
+            "role": str(message.role),
             "user_id": message.user_id,
             "content": message.content,
             "created_at": message.created_at.isoformat(),
