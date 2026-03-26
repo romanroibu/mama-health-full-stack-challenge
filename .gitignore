@@ -1,0 +1,17 @@
+# Shared OS files
+.DS_Store
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
