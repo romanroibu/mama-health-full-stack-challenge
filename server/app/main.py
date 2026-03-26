@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect
 
 from .db import db
+from .ws import chat_handler
 
 
 @asynccontextmanager
@@ -32,3 +33,13 @@ async def get_messages():
         where={"user_id": str(demo_user_id)},
         order={"created_at": "asc"},
     )
+
+
+@app.websocket("/chat")
+async def chat_socket(ws: WebSocket):
+    await ws.accept()
+    try:
+        while True:
+            await chat_handler(ws, demo_user_id)
+    except WebSocketDisconnect:
+        return
