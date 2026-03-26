@@ -1,7 +1,8 @@
 from uuid import UUID
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 
 from .db import db
 from .ws import chat_handler
@@ -17,6 +18,14 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # In a real app, user_id would come from authentication context. For this demo, we'll use a fixed UUID.
 demo_user_id = UUID("D251EF60-3A8B-415D-900D-CC7C4BF60121")
