@@ -16,6 +16,7 @@ function sort(messages: Message[]): Message[] {
 export function useChatHistory(): UseChatHistoryReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const updateMessages = useCallback((newMessages: Message[]) => {
     setMessages((prev) => sort([...prev, ...newMessages]));
@@ -24,13 +25,21 @@ export function useChatHistory(): UseChatHistoryReturn {
   const appendMessage = useCallback(({ message }: { message: Message }) => updateMessages([message]), [updateMessages]);
 
   useEffect(() => {
+    if (isInitialized) return;
     (async () => {
       setIsLoading(true);
-      const history = await fetchMessages();
-      updateMessages(history);
-      setIsLoading(false);
+      let history = [];
+      try {
+        history = await fetchMessages();
+        updateMessages(history);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Failed to fetch message history', error);
+      } finally {
+        setIsLoading(false);
+      }
     })();
-  }, [updateMessages]);
+  }, [isInitialized, updateMessages]);
 
   return {
     messages,
