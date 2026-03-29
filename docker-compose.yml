@@ -2,7 +2,7 @@ services:
 
   server:
     build:
-      context: .
+      context: ./server
       dockerfile: Dockerfile
     container_name: mama-health-server
     restart: unless-stopped
