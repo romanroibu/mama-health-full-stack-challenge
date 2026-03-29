@@ -73,7 +73,9 @@ In a second terminal:
 ```bash
 cd client
 npm install
-npm run web
+npm run ios # for ios
+# npm run android # for android
+# npm run web # for browser
 ```
 
 The client expects backend URL from `EXPO_PUBLIC_API_URL`, defaulting to `http://localhost:8000`.
