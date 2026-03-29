@@ -1,114 +1,102 @@
-# Full Stack / React Native Challenge 🧑‍⚕️
+# Dr. Squiggles Chat - Full Stack Challenge
 
-Welcome, and thank you for your interest in joining mama health! This challenge simulates a real-world task where you need to quickly prototype a **mobile application** supported by a **robust, real-time backend**. It will test your ability to structure a project, handle real-time data flow, ensure a good user experience on mobile, and leverage modern backend tooling.
+A monorepo prototype of a real-time Crohn's support chat app.
 
-We respect your time and have designed this exercise to be completed in **4-6 hours**. Please don't feel the need to build a perfect, production-ready system. We're most interested in your **architectural approach**, your **design decisions**, and how you integrate different technologies to deliver a functional and delightful user experience.
+- Client: Expo React Native app in [client](client)
+- Server: FastAPI + Prisma in [server](server)
+- Persistence: PostgreSQL (Docker)
+- Transport split: REST for bootstrap history, WebSocket for live chat
 
-Good luck! ✨
+## System Diagram
 
----
+```mermaid
+flowchart LR
+  U[User - Expo App] -->|GET /api/messages| API[FastAPI Server]
+  U -->|WS /chat: send message| API
+  API -->|Read history| DB[(PostgreSQL)]
+  API -->|Persist user+bot messages| DB
+  API -->|WS events: user ack, typing, bot message| U
+```
 
-## The Business Context 🎯
+## Architectural Decisions
 
-PharmaCorp, a pharmaceutical company launching a new Crohn's Disease biologic. The companies focus is on **patient engagement and adherence**. They know that starting a new, complex treatment like a biologic can be overwhelming. Patients often have a stream of small, non-urgent questions ("Can I drink coffee after my injection?", "What do I do if I forget my dose by a few hours?").
+- REST endpoint [server/app/main.py](server/app/main.py) `/api/messages` loads full session history.
+- WebSocket endpoint [server/app/main.py](server/app/main.py) `/chat` handles live messaging.
+- Message persistence and event flow live in [server/app/ws.py](server/app/ws.py).
+- Prisma schema in [server/prisma/schema.prisma](server/prisma/schema.prisma) stores messages with role and timestamp.
+- On each user message, server persists user record, emits typing, generates bot response, persists bot record, then sends bot event.
+- Chat history fetch completes first in [client/hooks/useChatHistory.ts](client/hooks/useChatHistory.ts).
+- WebSocket connection is enabled only after history bootstrap in [client/hooks/useChat.ts](client/hooks/useChat.ts).
+- Root [docker-compose.yml](docker-compose.yml) starts both API and PostgreSQL.
+- Server startup performs `prisma db push` to ensure schema exists in fresh environments.
 
-PharmaCorp wants to prototype a secure, always-available digital companion to help patients feel supported. They envision a **conversational AI interface** that can answer simple, common questions about Crohn's Disease management, treatment logistics, and side effects.
+## Chatbot Persona
 
-**The core requirement is a simple, highly reliable mobile chat interface.**
+Bot logic lives in [server/app/bot.py](server/app/bot.py) as rule-based responses.
 
----
+Persona constraints:
+- Character: Dr. Squiggles, overly enthusiastic goldfish
+- Scope: Crohn's-related support only (symptoms, side effects, dosing, injections, flares)
+- Non-derailing: out-of-scope prompts are redirected back to Crohn's topics
+- Safety: urgent symptom language is escalated to immediate care advice
 
-## Your Mission 🚀
+Implementation approach:
+- Keyword matching via `_contains_any(...)`
+- Topic-specific response templates in a consistent fish-themed tone
+- Simulated thinking delay for better typing-indicator UX
 
-Your mission is to build a minimal, functional **real-time chat application** using **React Native (via Expo)** for the frontend and a custom backend for the conversation logic and persistence.
+## Setup and Run Instructions
 
-The application must demonstrate competency in three key areas:
-1.  **Mobile Development (React Native/Expo):** A single-screen, usable chat interface.
-2.  **Backend Architecture:** A service that can handle both persistent (REST) and real-time (WebSocket) communication.
-3.  **Chatbot Personality & Logic:** A simple, engaging, and non-derailing chatbot personality.
+## Prerequisites
 
----
+- Docker + Docker Compose
+- Node.js 20+
+- npm
 
-## The Technology Stack 🛠️
+## 1) Start backend + database
 
-* **Frontend:** React Native (Expo)
-* **Backend:** A technology of your choice (e.g., Python/FastAPI, Node.js/Express, Go/Gin)
-    * **Real-time:** WebSockets
-    * **Conversation History:** REST API
-* **Database/Persistence:** A containerized database of your choice (e.g., PostgreSQL, MongoDB, SQLite).
-* **Containerization:** `docker-compose` to manage the database and backend services.
+From repository root:
 
----
+```bash
+docker compose up --build
+```
 
-## Core Tasks ✅
+Services:
+- API: http://localhost:8000
+- Health: http://localhost:8000/health
+- Postgres: localhost:5432
 
-### 1. Project Setup & Architecture
+## 2) Start Expo client
 
--   Create a single, monorepo structure containing the React Native app (`/client`) and the backend service (`/server`).
--   Write a `docker-compose.yml` file to spin up your chosen database and your backend application.
-    -   **Side Note:** If working on Windows, ensure your `docker-compose` volumes and scripts are configured to work correctly in a Linux/container environment (e.g., correct line endings, permissions).
+In a second terminal:
 
-### 2. The Backend Chat Service
+```bash
+cd client
+npm install
+npm run web
+```
 
-The backend must fulfill two roles:
+The client expects backend URL from `EXPO_PUBLIC_API_URL`, defaulting to `http://localhost:8000`.
 
-* **REST API:** Expose an endpoint (e.g., `/api/messages`) to **fetch the entire conversation history** for a single, hardcoded user/session. This should be the first call the mobile app makes on load.
-* **WebSocket Server:** Handle the live chat.
-    * When a user sends a message via the WebSocket, the server should process it, generate a response, **persist both messages (user & bot)** to the database, and then broadcast the bot's response back to the client via the WebSocket.
+Optional override:
 
-### 3. The React Native Client
+```bash
+EXPO_PUBLIC_API_URL=http://localhost:8000 npm run web
+```
 
--   Develop a single-screen Expo app showing a simple chat UI.
--   When the app loads, it must first **fetch the conversation history** via the REST API.
--   The app must then establish a **WebSocket connection** to handle all new incoming and outgoing messages in real-time.
--   Implement a basic message input and display area.
+## 3) Verify the flow
 
-### 4. Chatbot Personality (Extra Points)
+1. App loads existing history from `/api/messages`.
+2. App opens WebSocket to `/chat`.
+3. Sending a message yields: user ack -> typing event -> bot reply.
+4. Refreshing app shows persisted conversation history.
 
--   Create a chatbot with a specific, **funny, and non-derailing premise**. For example:
-    * "**Dr. Squiggles, The Overly Enthusiastic Goldfish**": A chatbot that only answers health/Crohn's related questions but frames every answer with extreme, almost alarming enthusiasm and uses goldfish-related analogies (e.g., "That's a fantastic question! You're swimming in the right direction!").
--   The bot's responses can be simple pre-programmed rules (e.g., pattern matching on keywords like "side effect" or "dosage"). The key is maintaining the character.
+## Security Notes
 
-### 5. UI (Extra Points)
+Current CORS in [server/app/main.py](server/app/main.py) allows any origin.
 
-- Make the UI nice to look at. Strive away from the results Lovable, Claude or Gemini produce.
+For production, implement stricter origin policy and authenticated WebSocket sessions.
 
----
+## Repository Notes
 
-## What We're Looking For 🌟
-
--   **Architectural Clarity:** A clean separation between client and server, and a logical flow between REST (bootstrapping/history) and WebSockets (real-time).
--   **React Native Proficiency:** Your ability to set up a quick, clean Expo project and handle state and UI (e.g., scrolling to the latest message).
--   **Full-Stack Integration:** Correct implementation of networking logic (fetching from REST, connecting to WS) and deployment via `docker-compose`.
--   **Code Quality:** Clean, well-typed (e.g., TypeScript for RN, typing in your backend language), and easily understandable code.
--   **Creativity and Engagement:** The quality and consistency of your chatbot's personality. Can the premise successfully prevent the bot from derailing into generic chat?
--   **Smart user of AI:** Be as productive as possible, but
-don't just rely on the AI.
----
-
-## Deliverables 📦
-
-Please submit a link to your forked and completed GitHub repository. **Keep the repository private** and send an invite to **johannes.unruh@mamahealth.io** (tj-mm) and **lorenzo.famiglini@mamahealth.io** (lollomamahealth) a short notification email to **mattia.munari@mamahealth.io**.
-
-The repository should contain:
-
-1.  Use `git` properly. Your repo should have more than one commit. Document your progress.
-2.  **`/client`** directory - The complete React Native (Expo) application.
-2.  **`/server`** directory - The complete backend service code.
-3.  **`docker-compose.yml`** - To run the database and backend.
-4.  **`README.md`** - Updated with your final analysis, including:
-    * **System Diagram:** A simple diagram showing the data flow (Client -> REST/WS -> Server -> DB).
-    * **Architectural Decisions:** Explain your choices (e.g., Why this database? Why this backend framework? How did you handle WS persistence?).
-    * **Chatbot Persona:** Describe your chatbot's premise and how you enforced its personality to prevent derailing.
-    * **Setup/Run Instructions:** Clear steps on how to start the `docker-compose` and run the Expo client.
-
----
-
-## Optional "Go the Extra Mile" Tasks 🚀
-
-Have extra time? Want to impress us further? Consider one of the following (these are **completely optional**):
-
--   **Error Handling & State Management:** Implement robust connection status indicators in the mobile app (e.g., "Connecting...", "Disconnected").
--   **UX Refinements:** Add a "typing indicator" on the client side when the server is processing a response, or optimize the flat list for performance.
--   **Security Consideration:** Briefly discuss how you would secure the WebSocket connection (e.g., token-based authentication) in a production environment.
--   **Multi-User Mock:** Modify the API/DB to support two distinct, hardcoded users, fetching and displaying separate conversation histories based on a simple mock user ID.
+- Original assignment is preserved in [CHALLENGE.md](CHALLENGE.md).
