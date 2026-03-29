@@ -9,7 +9,6 @@ interface UseChatHistoryReturn {
 }
 
 function sort(messages: Message[]): Message[] {
-  console.log('Sorting messages', messages);
   return messages.sort((a, b) => a.created_at.localeCompare(b.created_at));
 }
 
