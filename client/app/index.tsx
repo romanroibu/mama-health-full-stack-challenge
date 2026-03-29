@@ -13,7 +13,7 @@ import { TypingIndicator } from '../components/TypingIndicator';
 import { useChat } from '../hooks/useChat';
 import { Message } from '../services/ws';
 
-function Header({ isConnected }: { isConnected: boolean }) {
+function Header({ botName, isConnected }: { botName: string, isConnected: boolean }) {
   return (
     <View
       style={{
@@ -28,7 +28,7 @@ function Header({ isConnected }: { isConnected: boolean }) {
       }}
     >
       <Text style={{ fontSize: 18, fontWeight: '700', color: '#1A1A1A' }}>
-        🐟 Dr. Squiggles
+        {botName}
       </Text>
       <View
         style={{
@@ -44,7 +44,7 @@ function Header({ isConnected }: { isConnected: boolean }) {
 }
 
 export default function ChatScreen() {
-  const { messages, isLoading, isConnected, isBotThinking, sendMessage } = useChat();
+  const { messages, isLoading, isConnected, botName, isBotThinking, sendMessage } = useChat();
 
   if (isLoading) {
     return (
@@ -66,7 +66,7 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top']}>
-      <Header isConnected={isConnected} />
+      <Header botName={botName} isConnected={isConnected} />
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <FlatList
@@ -74,7 +74,7 @@ export default function ChatScreen() {
           data={[...messages].reverse()}
           ListHeaderComponent={isBotThinking ? <TypingIndicator /> : null}
           keyExtractor={(item: Message) => item.id}
-          renderItem={({ item }) => <MessageBubble message={item} />}
+          renderItem={({ item }) => <MessageBubble botName={botName} message={item} />}
           contentContainerStyle={{
             paddingVertical: 8,
             flexGrow: 1,

@@ -6,6 +6,7 @@ type SendMessage = ReturnType<typeof useWebSocket>['sendMessage'];
 
 interface UseChatReturn {
   messages: Message[];
+  botName: string;
   isLoading: boolean;
   isConnected: boolean;
   isBotThinking: boolean;
@@ -28,5 +29,6 @@ export function useChat(): UseChatReturn {
     isConnected,
     isBotThinking,
     sendMessage,
+    botName: 'Dr. Squiggles',
   };
 }

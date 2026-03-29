@@ -3,6 +3,7 @@ import { Text, View, useWindowDimensions } from 'react-native';
 import { Message } from '../services/ws';
 
 interface MessageBubbleProps {
+  botName: string;
   message: Message;
 }
 
@@ -11,7 +12,7 @@ function formatTime(timestamp: string): string {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ botName, message }) => {
   const { width } = useWindowDimensions();
   const maxBubbleWidth = width * 0.75;
   const isUser = message.role === 'user';
@@ -35,7 +36,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
               marginLeft: 4,
             }}
           >
-            🐟 Dr. Squiggles
+            {botName}
           </Text>
         )}
         <View
