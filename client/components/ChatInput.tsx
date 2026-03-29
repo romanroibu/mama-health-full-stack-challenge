@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface ChatInputProps {
@@ -8,13 +8,19 @@ interface ChatInputProps {
 
 export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled = false }) => {
   const [text, setText] = useState('');
+  const inputRef = useRef<TextInput>(null);
 
   const canSend = text.trim().length > 0 && !disabled;
 
   const handleSend = () => {
     if (!canSend) return;
-    onSend(text.trim());
+    const message = text.trim();
+
+    // Clearing first prevents iOS multiline TextInput from restoring stale text.
     setText('');
+    inputRef.current?.clear();
+
+    onSend(message);
   };
 
   return (
@@ -30,6 +36,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled = false }
       }}
     >
       <TextInput
+        ref={inputRef}
         style={{
           flex: 1,
           minHeight: 40,
