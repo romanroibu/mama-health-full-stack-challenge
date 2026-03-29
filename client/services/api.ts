@@ -1,4 +1,4 @@
-import { Message } from '../types/chat';
+import { Message } from '../services/ws';
 
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
@@ -29,6 +29,6 @@ function toMessage(entity: MessageEntity): Message {
     user_id: entity.user_id,
     role: entity.role,
     content: entity.content,
-    timestamp: entity.created_at,
+    created_at: entity.created_at,
   };
 }

@@ -12,7 +12,7 @@ import { ChatInput } from '../components/ChatInput';
 import { MessageBubble } from '../components/MessageBubble';
 import { TypingIndicator } from '../components/TypingIndicator';
 import { useChat } from '../hooks/useChat';
-import { Message } from '../types/chat';
+import { Message } from '../services/ws';
 
 export default function ChatScreen() {
   const { messages, isLoading, isConnected, isBotThinking, sendMessage } = useChat();

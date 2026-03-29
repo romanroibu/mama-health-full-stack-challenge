@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View, useWindowDimensions } from 'react-native';
-import { Message } from '../types/chat';
+import { Message } from '../services/ws';
 
 interface MessageBubbleProps {
   message: Message;
@@ -69,7 +69,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             marginHorizontal: 4,
           }}
         >
-          {formatTime(message.timestamp)}
+          {formatTime(message.created_at)}
         </Text>
       </View>
     </View>

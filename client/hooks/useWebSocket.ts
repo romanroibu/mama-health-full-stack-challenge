@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { createWS, sendMessage as sendWSMessage } from '../services/ws';
-import { ChatUpdate, Message } from '../types/chat';
+import { create as wsCreate, sendMessage as wsSendMessage, safeParseChatUpdate as wsSafeParseChatUpdate, Message } from '../services/ws';
 
 interface UseWebSocketParams {
   onNewMessage: ({ message }: { message: Message }) => void;
@@ -24,7 +23,7 @@ export function useWebSocket({ onNewMessage }: UseWebSocketParams): UseWebSocket
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const ws = createWS();
+    const ws = wsCreate();
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -57,9 +56,8 @@ export function useWebSocket({ onNewMessage }: UseWebSocketParams): UseWebSocket
         return;
       }
 
-      if (!payload || typeof payload !== 'object') return;
-
-      const data = payload as ChatUpdate & { created_at?: string };
+      const data = wsSafeParseChatUpdate(payload);
+      if (!data) return;
 
       if (data.type === 'typing') {
         setIsBotThinking(true);
@@ -75,8 +73,6 @@ export function useWebSocket({ onNewMessage }: UseWebSocketParams): UseWebSocket
       }
 
       if (data.type === 'message') {
-        const timestamp = data.created_at ?? data.timestamp;
-
         if (data.role === 'user') {
           setIsSending(false);
         }
@@ -91,7 +87,7 @@ export function useWebSocket({ onNewMessage }: UseWebSocketParams): UseWebSocket
             user_id: data.user_id,
             role: data.role,
             content: data.content,
-            timestamp,
+            created_at: data.created_at,
           },
         });
       }
@@ -114,7 +110,7 @@ export function useWebSocket({ onNewMessage }: UseWebSocketParams): UseWebSocket
 
       setIsSending(true);
       setIsBotThinking(false);
-      sendWSMessage(ws, userMessage);
+      wsSendMessage(ws, userMessage);
     },
     [isSending],
   );

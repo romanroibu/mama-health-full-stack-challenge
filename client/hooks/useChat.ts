@@ -1,4 +1,4 @@
-import { Message } from '../types/chat';
+import { Message } from '../services/ws';
 import { useChatHistory } from './useChatHistory';
 import { useWebSocket } from './useWebSocket';
 

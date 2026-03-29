@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchMessages } from '../services/api';
-import { Message } from '../types/chat';
+import { Message } from '../services/ws';
 
 interface UseChatHistoryReturn {
   messages: Message[];
@@ -10,7 +10,7 @@ interface UseChatHistoryReturn {
 
 function sort(messages: Message[]): Message[] {
   console.log('Sorting messages', messages);
-  return messages.sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+  return messages.sort((a, b) => a.created_at.localeCompare(b.created_at));
 }
 
 export function useChatHistory(): UseChatHistoryReturn {
